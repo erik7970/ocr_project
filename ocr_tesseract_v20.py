@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Aug 28 18:47:12 2020
-
-@author: erik7
-"""
-
 import pandas as pd
 import pytesseract
 import pdf2image
@@ -14,7 +7,6 @@ import os
 import re
 import math
 import time
-#import matplotlib.pyplot as plt
 import PIL
 import gc
 import multiprocessing
@@ -103,15 +95,6 @@ class imagePrep:
         img = cv2.imread(img_path)
         bounding_boxes = get_bounding_boxes(img)
 
-        # next few lines are useful for seeing all the bounding boxes/contours detected in the image
-        # img_plot = img.copy()
-        # for contour in new_contours:
-        #     (x,y,w,h) = cv2.boundingRect(contour)
-        #     #if ((w > 100) and (w < 600) and (h > 23) and (h < 80)):
-        #     print(x,y,w,h)
-        #     img_plot = cv2.rectangle(img_plot, (x, y), (x + w, y + h), (255, 0, 0), 2)
-        #     plt.imshow(img_plot, cmap = 'gray')
-        #     plt.show()
 
         def neighboring_cells(boundingBoxes, dimension):
             
@@ -172,16 +155,6 @@ class imagePrep:
             # filter for groups of contours that have more than two contours in succession
             bounding_boxes = [boxes_dict[key] for key in boxes_dict.keys() if len(boxes_dict[key]) > 2]
             bounding_boxes = [tup for lst in bounding_boxes for tup in lst]
-            
-            # next few lines are useful for seeing all the bounding boxes/contours detected after the steps above
-            # img_plot = img.copy()
-            # for contour in bounding_boxes:
-            #     (x,y,w,h) = contour
-            #     #if ((w > 100) and (w < 600) and (h > 23) and (h < 80)):
-            #     print(x,y,w,h)
-            #     img_plot = cv2.rectangle(img_plot, (x, y), (x + w, y + h), (255, 0, 0), 2)
-            #     plt.imshow(img_plot, cmap = 'gray')
-            #     plt.show()
             
             # steps above should have successfully filtered for only those cells found in the items table. 
             # get the smallest (x, y) pair and the longest (x, y) pair -- these two sets of points determine the lenght and height of the table to use for cropping
@@ -268,12 +241,7 @@ class imagePrep:
                 date_start, date_end = "", ""
                 pass
         
-            # save the cropped items table image -- useful to for testing
-            #cv2.imwrite(os.path.join(output_path, output_name + "_items.png" ), items)
-            #date = img[0:, items_x_end:].copy()
-            #cv2.imwrite(os.path.join(output_path, output_name + "_date.png"), date)
-            #cv2.imwrite(os.path.join(output_path, output_name + "_top.png"), top)
-        
+       
             del top 
             return category_mgr, vendor_num, bill_to_vendor, vendor_name, date_start, date_end, items, crop_left, crop_right, date_box
             
@@ -333,17 +301,10 @@ class imagePrep:
             right_txt = list(filter(None, right_txt))
             bill_to_vendor, vendor_name = right_txt[0].replace("_", "").replace("—", "").strip(" "), right_txt[1].replace("_", "").replace("—", "").strip(" ")
             
-            #cv2.imwrite(os.path.join(output_path, output_name + "_items.png"), items)
-            #cv2.imwrite(os.path.join(output_path, output_name + "_top.png"), top)
-            
+           
             del top
             return category_mgr, vendor_num, bill_to_vendor, vendor_name, items, crop_left, crop_right
-        
-        
-    #def save_image(self, output_path, file_name, img):
-        
-        #cv2.imwrite(os.path.join(output_path, file_name), img)
-       
+              
 
 class extractItemData():
     
@@ -417,7 +378,6 @@ class extractItemData():
             reverse = True
             
         # handle if we are sorting against the y-coordinate rather than the x-coordinate of the bounding box
-        
         if method == "top-to-bottom" or method == "bottom-to-top":
             i = 1
             
@@ -431,10 +391,7 @@ class extractItemData():
     def bounding_boxes(self, img, kernel, vertical_lines, horizontal_lines, text_removed):
         
         """Get bounding boxes for all cells in the items table. Has several more steps in addition to the 'crop_image' function"""
-        
-        # used for plotting purposes later on towards the end of this function--useful for testing
-        #img_og = cv2.cvtColor(img, cv2.cv2.COLOR_GRAY2RGB)
-        
+               
         # Combine horizontal and vertical lines in a new third image, with both having same weight.
         img_vh = cv2.addWeighted(vertical_lines, 0.5, horizontal_lines, 0.5, 0.0)
         rows, cols = img_vh.shape
@@ -476,12 +433,6 @@ class extractItemData():
             # add contours to 'box_list' if the following conditions are met for width and height (this will restrict to cells in the table that may contain data)
                 if ((w > 100) and (w < 700) and (h > 40) and (h < 900)):
                     
-                    #overlay the identified bounding boxes on the original image -- useful for testing
-                    #print(str((x,y,w,h)))
-                    #img_plot = cv2.rectangle(img_og, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                    #plt.imshow(img_plot, cmap = 'gray')
-                    #plt.show()
-                
                     box_list.append([x, y, w, h])
                 
                 # this condition is to white out text held inside potential cells determined by contours to later dilate horizontal or vertical lines if necessary
@@ -492,16 +443,9 @@ class extractItemData():
             elif self.template_type == 2:
                 # condition with the x is so that the cell containing 'scan dates' is not used.
                 if ((not ((x >= 1370 and x <= 1390) and (w >= 345 and w <= 365))) and ((w > 100 and w < 600) and (h > 10 and h < 85))):
-                    #print(str((x,y,w,h)))
-                    
-                    # overlay the identified bounding boxes on the original image -- useful for testing
-                    # img_plot = cv2.rectangle(img_og, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                    # plt.imshow(img_plot, cmap = 'gray')
-                    # plt.show()
                     
                     box_list.append([x, y, w, h])
-                    
-                    #time.sleep(1)
+
                 elif not ((w > 1700) and (h > 975)):
                     text_removed[y:y+h-1,x:x+w-1] = [255, 255, 255]
         
@@ -601,11 +545,7 @@ class extractItemData():
                             resizing = cv2.resize(final_img, None, fx = 2, fy = 2, interpolation = cv2.INTER_CUBIC)
                             dilation = cv2.dilate(resizing, kernel, iterations = 1)
                             erosion = cv2.erode(dilation, kernel, iterations = 2)
-                            
-                            #plot the cell found in 'final_img' after transforming -- useful for checking what Python sees before applying OCR
-                            #plt.imshow(erosion, cmap = 'gray')
-                            #plt.show()
-        
+                                 
                             out = pytesseract.image_to_string(erosion, lang = 'eng', config = '--psm 12')
                             out = out.replace("$", "").replace("_", "").replace("|", "").replace("!", "").strip()
                             
@@ -628,10 +568,7 @@ class extractItemData():
                             resizing = cv2.resize(final_img, None, fx = 2, fy = 2, interpolation = cv2.INTER_CUBIC)
                             dilation = cv2.dilate(resizing, kernel, iterations = 1)
                             erosion = cv2.erode(dilation, kernel, iterations = 2)
-                            
-                            #plt.imshow(erosion, cmap = 'gray')
-                            #plt.show()
-                            
+
                             out = pytesseract.image_to_string(erosion, lang = 'eng', config = '--psm 12')
                             out = out.replace("$", "").replace("_", "").replace("|", "").replace("!", "").replace("\n", "—").strip()
                             
@@ -924,7 +861,7 @@ def extract(output_fmt, output_path, pdf_path, img, page_num):
 
 if __name__ == "__main__":
 
-    pdf_path = r"C:/Users/erik7/Documents/Late Scans for Testing/scans_ass_load.pdf"
+    pdf_path = r"C:/Users/erik7/Documents/Late Scans for Testing/scans_template2.pdf"
     output_fmt = 'jpeg'
     img_dpi = 300 #dpi should be at least 300 for accurate extraction of text -- higher dpi impacts performance negatively
     pop_path = r"C:\Users\erik7\Downloads\poppler-0.90.1\bin"
@@ -943,22 +880,9 @@ if __name__ == "__main__":
     r = p.starmap(extract, iterable)
     results.append(r)
     p.close()
-    #del img, data_extracted
-    #gc.collect()
-    
-    # for page_num, img in enumerate(converted[:10]):
-    #     print("\nPage " + str(page_num + 1) + " of " + str(len(converted)))
-        
-    #     data_extracted = extract(output_fmt, output_path, pdf_path, img, page_num)
-    #     results.append(data_extracted)
-        
-    #     del img, data_extracted
-    #     gc.collect()
-               
+
     print("\n**PROCESS COMPLETED SUCCESSFULLY")
     
     end = time.time()
     time_convert(start, end)  
     
-    #workbook_path = create_workbook(results, r"C:\Users\erik7\Downloads", "results")
-    #auto_fit(workbook_path)
